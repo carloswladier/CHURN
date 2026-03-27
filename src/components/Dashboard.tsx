@@ -727,7 +727,7 @@ export default function Dashboard() {
                 className="bg-white border border-gray-100 overflow-hidden rounded-2xl shadow-sm"
               >
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-center border-collapse">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-100">
                         <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Cidade</th>
@@ -735,7 +735,7 @@ export default function Dashboard() {
                           className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('med_churn_total')}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
                             Média Churn Total
                             {sortConfig?.key === 'med_churn_total' ? (
                               sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
@@ -747,7 +747,7 @@ export default function Dashboard() {
                           className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('outage')}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
                             QTD Outage
                             {sortConfig?.key === 'outage' ? (
                               sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
@@ -759,7 +759,7 @@ export default function Dashboard() {
                           className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_retencao')}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
                             CR Ret
                             {sortConfig?.key === 'cr_retencao' ? (
                               sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
@@ -770,7 +770,7 @@ export default function Dashboard() {
                           className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_tecnico')}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
                             CR Técnico
                             {sortConfig?.key === 'cr_tecnico' ? (
                               sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
@@ -781,7 +781,7 @@ export default function Dashboard() {
                           className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_financeiro')}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
                             CR Financeiro
                             {sortConfig?.key === 'cr_financeiro' ? (
                               sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
@@ -789,8 +789,28 @@ export default function Dashboard() {
                           </div>
                         </th>
                         <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Criticidade</th>
-                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Desc Vol Mês</th>
-                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Base Mês</th>
+                        <th 
+                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          onClick={() => requestSort('desc_vol_mes')}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            Desc Vol Mês
+                            {sortConfig?.key === 'desc_vol_mes' ? (
+                              sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
+                            ) : <ArrowUpDown size={10} />}
+                          </div>
+                        </th>
+                        <th 
+                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          onClick={() => requestSort('base_mes')}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            Base Mês
+                            {sortConfig?.key === 'base_mes' ? (
+                              sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
+                            ) : <ArrowUpDown size={10} />}
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
