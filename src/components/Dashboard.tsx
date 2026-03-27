@@ -543,12 +543,12 @@ export default function Dashboard() {
                           dataKey="name" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 9, fill: '#9ca3af' }}
+                          tick={{ fontSize: 9, fill: '#000000', fontWeight: 'bold' }}
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 9, fill: '#9ca3af' }}
+                          tick={{ fontSize: 9, fill: '#000000', fontWeight: 'bold' }}
                           width={40}
                         />
                         <Tooltip 
@@ -572,7 +572,7 @@ export default function Dashboard() {
                             dataKey="value" 
                             position="top" 
                             formatter={(value: number) => `${value.toFixed(2)}%`}
-                            style={{ fontSize: '9px', fill: '#6b7280', fontWeight: 'bold' }} 
+                            style={{ fontSize: '11px', fill: '#000000', fontWeight: 'bold' }} 
                           />
                         </Bar>
                       </BarChart>
@@ -595,12 +595,12 @@ export default function Dashboard() {
                           dataKey="name" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 9, fill: '#9ca3af' }}
+                          tick={{ fontSize: 9, fill: '#000000', fontWeight: 'bold' }}
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 9, fill: '#9ca3af' }}
+                          tick={{ fontSize: 9, fill: '#000000', fontWeight: 'bold' }}
                           width={40}
                         />
                         <Tooltip 
@@ -619,7 +619,7 @@ export default function Dashboard() {
                           <LabelList 
                             dataKey="value" 
                             position="top" 
-                            style={{ fontSize: '9px', fill: '#6b7280', fontWeight: 'bold' }} 
+                            style={{ fontSize: '11px', fill: '#000000', fontWeight: 'bold' }} 
                           />
                         </Bar>
                       </BarChart>
@@ -650,7 +650,7 @@ export default function Dashboard() {
                           {baseDistribution.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={['#EE2E24', '#000000', '#8E9299', '#D12820', '#333333'][index % 5]} />
                           ))}
-                          <LabelList dataKey="value" position="outside" style={{ fontSize: '10px', fill: '#6b7280', fontWeight: 'bold' }} />
+                          <LabelList dataKey="value" position="outside" style={{ fontSize: '11px', fill: '#000000', fontWeight: 'bold' }} />
                         </Pie>
                         <Tooltip 
                            contentStyle={{ 
@@ -686,12 +686,12 @@ export default function Dashboard() {
                           dataKey="name" 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 'bold' }}
+                          tick={{ fontSize: 10, fill: '#000000', fontWeight: 'bold' }}
                         />
                         <YAxis 
                           axisLine={false} 
                           tickLine={false} 
-                          tick={{ fontSize: 9, fill: '#9ca3af' }}
+                          tick={{ fontSize: 9, fill: '#000000', fontWeight: 'bold' }}
                           width={40}
                         />
                         <Tooltip 
@@ -710,7 +710,7 @@ export default function Dashboard() {
                           <LabelList 
                             dataKey="value" 
                             position="top" 
-                            style={{ fontSize: '10px', fill: '#6b7280', fontWeight: 'bold' }} 
+                            style={{ fontSize: '11px', fill: '#000000', fontWeight: 'bold' }} 
                           />
                         </Bar>
                       </BarChart>
@@ -730,9 +730,9 @@ export default function Dashboard() {
                   <table className="w-full text-center border-collapse">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-100">
-                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Cidade</th>
+                        <th className="p-4 text-[11px] font-mono uppercase text-black">Cidade</th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('med_churn_total')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -742,9 +742,9 @@ export default function Dashboard() {
                             ) : <ArrowUpDown size={10} />}
                           </div>
                         </th>
-                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">QTD Node</th>
+                        <th className="p-4 text-[11px] font-mono uppercase text-black">QTD Node</th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('outage')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -754,9 +754,9 @@ export default function Dashboard() {
                             ) : <ArrowUpDown size={10} />}
                           </div>
                         </th>
-                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">AT1</th>
+                        <th className="p-4 text-[11px] font-mono uppercase text-black">AT1</th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_retencao')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -767,7 +767,7 @@ export default function Dashboard() {
                           </div>
                         </th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_tecnico')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -778,7 +778,7 @@ export default function Dashboard() {
                           </div>
                         </th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_financeiro')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -788,9 +788,9 @@ export default function Dashboard() {
                             ) : <ArrowUpDown size={10} />}
                           </div>
                         </th>
-                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Criticidade</th>
+                        <th className="p-4 text-[11px] font-mono uppercase text-black">Criticidade</th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('desc_vol_mes')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -801,7 +801,7 @@ export default function Dashboard() {
                           </div>
                         </th>
                         <th 
-                          className="p-4 text-[10px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('base_mes')}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -816,17 +816,17 @@ export default function Dashboard() {
                     <tbody>
                       {sortedData.slice(0, 50).map((item, idx) => (
                         <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                          <td className="p-4 text-xs font-medium text-gray-700">{item.nm_cidade}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{(Number(item.med_churn_total) * 100).toFixed(2)}%</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.cd_node}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.outage}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.at1}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.cr_retencao}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.cr_tecnico}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.cr_financeiro}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.criticidade}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.desc_vol_mes}</td>
-                          <td className="p-4 text-xs font-mono text-gray-600">{item.base_mes}</td>
+                          <td className="p-4 text-sm font-medium text-black">{item.nm_cidade}</td>
+                          <td className="p-4 text-sm font-mono text-black">{(Number(item.med_churn_total) * 100).toFixed(2)}%</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.cd_node}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.outage}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.at1}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.cr_retencao}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.cr_tecnico}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.cr_financeiro}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.criticidade}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.desc_vol_mes}</td>
+                          <td className="p-4 text-sm font-mono text-black">{item.base_mes}</td>
                         </tr>
                       ))}
                     </tbody>
