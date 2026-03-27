@@ -191,6 +191,15 @@ export default function Dashboard() {
     { key: 'class_6_meses_vol', label: 'VOLUNTÁRIO 6 MESES' },
   ];
 
+  const [openFilters, setOpenFilters] = useState<Record<string, boolean>>({});
+
+  const toggleFilterAccordion = (key: string) => {
+    setOpenFilters(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
   const toggleFilter = (key: keyof FilterState, value: string) => {
     setFilters(prev => {
       const current = prev[key];
@@ -355,7 +364,7 @@ export default function Dashboard() {
           <div className="w-8 h-8 bg-white text-[#EE2E24] flex items-center justify-center rounded-lg">
             <BarChart3 size={18} />
           </div>
-          <h1 className="text-lg font-bold uppercase tracking-tighter text-white">OpsDash v1.0</h1>
+          <h1 className="text-lg font-bold uppercase tracking-tighter text-white">DASH CHURN CLARO</h1>
         </div>
         
         <div className="flex items-center gap-4">
@@ -387,33 +396,66 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="p-4 space-y-6">
+          <div className="p-4 space-y-2">
             {filterConfig.map(({ key, label }) => (
-              <div key={key} className="space-y-2">
-                <label className="text-[11px] font-mono uppercase text-gray-400 flex items-center justify-between">
-                  {label}
-                  {filters[key].length > 0 && (
-                    <span className="bg-[#EE2E24] text-white px-1.5 py-0.5 rounded-full text-[9px]">
-                      {filters[key].length}
-                    </span>
+              <div key={key} className="border border-gray-100 rounded-xl overflow-hidden">
+                <button 
+                  onClick={() => toggleFilterAccordion(key)}
+                  className={cn(
+                    "w-full p-3 flex items-center justify-between text-left transition-colors",
+                    openFilters[key] ? "bg-gray-50" : "bg-white hover:bg-gray-50"
                   )}
-                </label>
-                <div className="space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                  {uniqueValues[key].sort().map(val => (
-                    <button
-                      key={val}
-                      onClick={() => toggleFilter(key, val)}
-                      className={cn(
-                        "w-full text-left px-2 py-1.5 text-xs transition-colors rounded-lg border border-transparent",
-                        filters[key].includes(val) 
-                          ? "bg-red-50 text-[#EE2E24] border-red-100 font-bold" 
-                          : "hover:bg-gray-50 text-gray-600"
-                      )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-[11px] font-bold uppercase tracking-wider",
+                      filters[key].length > 0 ? "text-[#EE2E24]" : "text-gray-600"
+                    )}>
+                      {label}
+                    </span>
+                    {filters[key].length > 0 && (
+                      <span className="bg-[#EE2E24] text-white px-1.5 py-0.5 rounded-full text-[9px]">
+                        {filters[key].length}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronDown 
+                    size={14} 
+                    className={cn(
+                      "text-gray-400 transition-transform duration-200",
+                      openFilters[key] && "rotate-180"
+                    )} 
+                  />
+                </button>
+                
+                <AnimatePresence>
+                  {openFilters[key] && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden bg-white"
                     >
-                      {val}
-                    </button>
-                  ))}
-                </div>
+                      <div className="p-3 pt-0 space-y-1 max-h-48 overflow-y-auto custom-scrollbar border-t border-gray-50">
+                        {uniqueValues[key].sort().map(val => (
+                          <button
+                            key={val}
+                            onClick={() => toggleFilter(key, val)}
+                            className={cn(
+                              "w-full text-left px-2 py-1.5 text-xs transition-colors rounded-lg border border-transparent",
+                              filters[key].includes(val) 
+                                ? "bg-red-50 text-[#EE2E24] border-red-100 font-bold" 
+                                : "hover:bg-gray-50 text-gray-600"
+                            )}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
@@ -506,7 +548,7 @@ export default function Dashboard() {
                             fontSize: '10px'
                           }} 
                         />
-                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                           {churnByCityData.map((entry, index) => (
                             <Cell 
                               key={`cell-${index}`} 
@@ -557,7 +599,7 @@ export default function Dashboard() {
                             fontSize: '10px'
                           }} 
                         />
-                        <Bar dataKey="value" fill="#EE2E24" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="value" fill="#EE2E24" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                           {nodesByCityData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
@@ -590,6 +632,7 @@ export default function Dashboard() {
                           outerRadius={70}
                           paddingAngle={5}
                           dataKey="value"
+                          isAnimationActive={false}
                         >
                           {baseDistribution.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={['#EE2E24', '#000000', '#8E9299', '#D12820', '#333333'][index % 5]} />
@@ -644,7 +687,7 @@ export default function Dashboard() {
                             fontSize: '10px'
                           }} 
                         />
-                        <Bar dataKey="value" fill="#EE2E24" radius={[0, 4, 4, 0]}>
+                        <Bar dataKey="value" fill="#EE2E24" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                           <LabelList dataKey="value" position="right" style={{ fontSize: '9px', fill: '#6b7280', fontWeight: 'bold' }} />
                         </Bar>
                       </BarChart>

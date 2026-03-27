@@ -1,5 +1,5 @@
 {
-  "name": "Dashboard de Operações",
+  "name": "DASH CHURN CLARO",
   "description": "Dashboard analítico com filtros por cidade, criticidade, churn, node, at1 e g1, com suporte para importação de planilhas Excel.",
   "requestFramePermissions": []
 }
