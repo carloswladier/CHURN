@@ -12,6 +12,8 @@ export interface DashboardData {
   class_6_meses_vol: string;
   marc_unico: number;
   criticidade: string;
+  desc_vol_mes: string;
+  base_mes: string;
   [key: string]: any;
 }
 

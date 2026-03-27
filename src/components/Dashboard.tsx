@@ -91,7 +91,7 @@ export default function Dashboard() {
 
         // Basic validation: check if required columns exist
         const firstRow = normalizedData[0];
-        const required = ['nm_cidade', 'med_churn_total', 'cd_node', 'outage', 'at1', 'cr_retencao', 'cr_tecnico', 'cr_financeiro', 'tamanho_base', 'class_mes_vol_m3', 'class_6_meses_vol', 'marc_unico', 'criticidade'];
+        const required = ['nm_cidade', 'med_churn_total', 'cd_node', 'outage', 'at1', 'cr_retencao', 'cr_tecnico', 'cr_financeiro', 'tamanho_base', 'class_mes_vol_m3', 'class_6_meses_vol', 'marc_unico', 'criticidade', 'desc_vol_mes', 'base_mes'];
         const missing = required.filter(r => !(r in firstRow));
         
         if (missing.length > 0) {
@@ -254,17 +254,6 @@ export default function Dashboard() {
     return cityData;
   }, [filteredData]);
 
-  const outageByNodeData = useMemo(() => {
-    const nodeOutage: Record<string, number> = {};
-    filteredData.forEach(item => {
-      nodeOutage[item.cd_node] = (nodeOutage[item.cd_node] || 0) + (Number(item.outage) || 0);
-    });
-    return Object.entries(nodeOutage)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 15);
-  }, [filteredData]);
-
   const baseDistribution = useMemo(() => {
     const counts: Record<string, number> = {};
     filteredData.forEach(item => {
@@ -283,6 +272,28 @@ export default function Dashboard() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
+  }, [filteredData]);
+
+  const crAveragesData = useMemo(() => {
+    if (filteredData.length === 0) return [];
+    
+    let sumRet = 0;
+    let sumTec = 0;
+    let sumFin = 0;
+    
+    filteredData.forEach(item => {
+      sumRet += Number(item.cr_retencao) || 0;
+      sumTec += Number(item.cr_tecnico) || 0;
+      sumFin += Number(item.cr_financeiro) || 0;
+    });
+    
+    const count = filteredData.length;
+    
+    return [
+      { name: 'CR RETENÇÃO', value: parseFloat((sumRet / count).toFixed(2)) },
+      { name: 'CR TÉCNICO', value: parseFloat((sumTec / count).toFixed(2)) },
+      { name: 'CR FINANCEIRO', value: parseFloat((sumFin / count).toFixed(2)) }
+    ];
   }, [filteredData]);
 
   if (data.length === 0) {
@@ -336,6 +347,8 @@ export default function Dashboard() {
                     <span>• CLASS_6_MESES_VOL</span>
                     <span>• MARC_UNICO</span>
                     <span>• CRITICIDADE</span>
+                    <span>• DESC_VOL_MES</span>
+                    <span>• BASE_MES</span>
                   </div>
               </div>
             </div>
@@ -658,25 +671,28 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Chart 4: Outage by Node */}
-                <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm md:col-span-2">
+                {/* Chart 5: CR Averages */}
+                <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-gray-700">
-                      <BarChart3 size={14} className="text-[#EE2E24]" /> QTD Outage por Node (Top 15)
+                      <BarChart3 size={14} className="text-[#EE2E24]" /> Médias de CR (Retenção, Técnico, Financeiro)
                     </h3>
                   </div>
-                  <div className="h-[500px] w-full">
+                  <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={outageByNodeData} layout="vertical" margin={{ left: 20, right: 40 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
-                        <XAxis type="number" hide />
-                        <YAxis 
+                      <BarChart data={crAveragesData} margin={{ top: 30, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis 
                           dataKey="name" 
-                          type="category" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 'bold' }}
+                        />
+                        <YAxis 
                           axisLine={false} 
                           tickLine={false} 
                           tick={{ fontSize: 9, fill: '#9ca3af' }}
-                          width={100}
+                          width={40}
                         />
                         <Tooltip 
                           contentStyle={{ 
@@ -687,8 +703,15 @@ export default function Dashboard() {
                             fontSize: '10px'
                           }} 
                         />
-                        <Bar dataKey="value" fill="#EE2E24" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                          <LabelList dataKey="value" position="right" style={{ fontSize: '9px', fill: '#6b7280', fontWeight: 'bold' }} />
+                        <Bar dataKey="value" fill="#EE2E24" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                          {crAveragesData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                          <LabelList 
+                            dataKey="value" 
+                            position="top" 
+                            style={{ fontSize: '10px', fill: '#6b7280', fontWeight: 'bold' }} 
+                          />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -766,6 +789,8 @@ export default function Dashboard() {
                           </div>
                         </th>
                         <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Criticidade</th>
+                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Desc Vol Mês</th>
+                        <th className="p-4 text-[10px] font-mono uppercase text-gray-400">Base Mês</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -780,6 +805,8 @@ export default function Dashboard() {
                           <td className="p-4 text-xs font-mono text-gray-600">{item.cr_tecnico}</td>
                           <td className="p-4 text-xs font-mono text-gray-600">{item.cr_financeiro}</td>
                           <td className="p-4 text-xs font-mono text-gray-600">{item.criticidade}</td>
+                          <td className="p-4 text-xs font-mono text-gray-600">{item.desc_vol_mes}</td>
+                          <td className="p-4 text-xs font-mono text-gray-600">{item.base_mes}</td>
                         </tr>
                       ))}
                     </tbody>
