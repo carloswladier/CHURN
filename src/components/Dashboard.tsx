@@ -32,8 +32,35 @@ import {
   LabelList
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
+import L from 'leaflet';
 import { cn } from '../lib/utils';
 import { DashboardData, FilterState } from '../types';
+
+// Fix for default marker icon
+const setupLeafletIcon = () => {
+  if (typeof window !== 'undefined' && L.Icon.Default) {
+    const DefaultIcon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    L.Marker.prototype.options.icon = DefaultIcon;
+  }
+};
+
+const getCriticidadeColor = (criticidade: string) => {
+  const c = String(criticidade).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (c.includes('CRITICO')) return '#EE2E24';
+  if (c.includes('ATENCAO')) return '#F97316';
+  if (c.includes('CONTROLADO')) return '#EAB308';
+  if (c.includes('MONITORAR')) return '#22C55E';
+  return '#94A3B8';
+};
 
 const CLARO_RED = '#EE2E24';
 const COLORS = [CLARO_RED, '#D12820', '#B5221B', '#991D17', '#7D1713', '#61120F'];
@@ -52,7 +79,12 @@ export default function Dashboard() {
     criticidade: []
   });
 
-  const [activeTab, setActiveTab] = useState<'charts' | 'table'>('charts');
+  const [activeTab, setActiveTab] = useState<'charts' | 'table' | 'map'>('charts');
+  
+  React.useEffect(() => {
+    setupLeafletIcon();
+  }, []);
+
   const [sortConfig, setSortConfig] = useState<{ key: keyof DashboardData; direction: 'asc' | 'desc' } | null>({
     key: 'med_churn_total',
     direction: 'desc'
@@ -91,7 +123,7 @@ export default function Dashboard() {
 
         // Basic validation: check if required columns exist
         const firstRow = normalizedData[0];
-        const required = ['nm_cidade', 'med_churn_total', 'cd_node', 'outage', 'at1', 'cr_retencao', 'cr_tecnico', 'cr_financeiro', 'tamanho_base', 'class_mes_vol_m3', 'class_6_meses_vol', 'marc_unico', 'criticidade', 'desc_vol_mes', 'base_mes'];
+        const required = ['nm_cidade', 'med_churn_total', 'cd_node', 'outage', 'at1', 'g1', 'cr_retencao', 'cr_tecnico', 'cr_financeiro', 'tamanho_base', 'class_mes_vol_m3', 'class_6_meses_vol', 'marc_unico', 'criticidade', 'desc_vol_mes', 'base_mes', 'geolat', 'geolng'];
         const missing = required.filter(r => !(r in firstRow));
         
         if (missing.length > 0) {
@@ -121,6 +153,15 @@ export default function Dashboard() {
       setIsLoading(false);
     };
     reader.readAsBinaryString(file);
+  };
+
+  const exportToExcel = () => {
+    if (filteredData.length === 0) return;
+    
+    const ws = XLSX.utils.json_to_sheet(filteredData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Dados Filtrados");
+    XLSX.writeFile(wb, "dados_exportados.xlsx");
   };
 
   const filteredData = useMemo(() => {
@@ -274,6 +315,21 @@ export default function Dashboard() {
       .slice(0, 10);
   }, [filteredData]);
 
+  const at1G1AveragesData = useMemo(() => {
+    if (filteredData.length === 0) return [];
+    let sumAt1 = 0;
+    let sumG1 = 0;
+    filteredData.forEach(item => {
+      sumAt1 += Number(item.at1) || 0;
+      sumG1 += Number(item.g1) || 0;
+    });
+    const count = filteredData.length;
+    return [
+      { name: 'AT1', value: parseFloat(((sumAt1 / count) * 100).toFixed(2)) },
+      { name: 'G1', value: parseFloat(((sumG1 / count) * 100).toFixed(2)) }
+    ];
+  }, [filteredData]);
+
   const crAveragesData = useMemo(() => {
     if (filteredData.length === 0) return [];
     
@@ -339,6 +395,7 @@ export default function Dashboard() {
                     <span>• CD_NODE</span>
                     <span>• OUTAGE</span>
                     <span>• AT1</span>
+                    <span>• G1</span>
                     <span>• CR_RETENCAO</span>
                     <span>• CR_TECNICO</span>
                     <span>• CR_FINANCEIRO</span>
@@ -349,6 +406,8 @@ export default function Dashboard() {
                     <span>• CRITICIDADE</span>
                     <span>• DESC_VOL_MES</span>
                     <span>• BASE_MES</span>
+                    <span>• GEOLAT</span>
+                    <span>• GEOLNG</span>
                   </div>
               </div>
             </div>
@@ -517,6 +576,15 @@ export default function Dashboard() {
             >
               Painel de Dados
             </button>
+            <button 
+              onClick={() => setActiveTab('map')}
+              className={cn(
+                "px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg",
+                activeTab === 'map' ? "bg-white text-[#EE2E24] shadow-sm" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              Mapa de Nodes
+            </button>
           </div>
 
           <AnimatePresence mode="wait">
@@ -671,6 +739,55 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* Chart 4: AT1 and G1 Averages */}
+                <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-gray-700">
+                      <BarChart3 size={14} className="text-[#EE2E24]" /> Médias AT1 e G1 (%)
+                    </h3>
+                  </div>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={at1G1AveragesData} margin={{ top: 30, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 10, fill: '#000000', fontWeight: 'bold' }}
+                        />
+                        <YAxis 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 9, fill: '#000000', fontWeight: 'bold' }}
+                          width={40}
+                        />
+                        <Tooltip 
+                          formatter={(value: number) => [`${value.toFixed(2)}%`, 'Média']}
+                          contentStyle={{ 
+                            backgroundColor: '#fff', 
+                            border: '1px solid #f3f4f6', 
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                            fontSize: '10px'
+                          }} 
+                        />
+                        <Bar dataKey="value" fill="#EE2E24" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                          {at1G1AveragesData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                          <LabelList 
+                            dataKey="value" 
+                            position="top" 
+                            formatter={(value: number) => `${value.toFixed(2)}%`}
+                            style={{ fontSize: '11px', fill: '#000000', fontWeight: 'bold' }} 
+                          />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
                 {/* Chart 5: CR Averages */}
                 <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
                   <div className="flex items-center justify-between mb-6">
@@ -695,6 +812,7 @@ export default function Dashboard() {
                           width={40}
                         />
                         <Tooltip 
+                          formatter={(value: number) => [`${value.toFixed(2)}`, 'Média']}
                           contentStyle={{ 
                             backgroundColor: '#fff', 
                             border: '1px solid #f3f4f6', 
@@ -710,6 +828,7 @@ export default function Dashboard() {
                           <LabelList 
                             dataKey="value" 
                             position="top" 
+                            formatter={(value: number) => `${value.toFixed(2)}`}
                             style={{ fontSize: '11px', fill: '#000000', fontWeight: 'bold' }} 
                           />
                         </Bar>
@@ -718,7 +837,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </motion.div>
-            ) : (
+            ) : activeTab === 'table' ? (
               <motion.div 
                 key="table"
                 initial={{ opacity: 0, y: 10 }}
@@ -726,6 +845,17 @@ export default function Dashboard() {
                 exit={{ opacity: 0, y: -10 }}
                 className="bg-white border border-gray-100 overflow-hidden rounded-2xl shadow-sm"
               >
+                <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white">
+                  <h3 className="text-sm font-bold text-black uppercase tracking-wider">Base de Dados Filtrada</h3>
+                  <button
+                    onClick={exportToExcel}
+                    disabled={filteredData.length === 0}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#EE2E24] text-white text-xs font-bold rounded-xl hover:bg-[#D12820] transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download size={14} />
+                    EXPORTAR EXCEL
+                  </button>
+                </div>
                 <div className="overflow-x-auto custom-scrollbar">
                   <table className="w-full text-center border-collapse">
                     <thead>
@@ -754,7 +884,28 @@ export default function Dashboard() {
                             ) : <ArrowUpDown size={10} />}
                           </div>
                         </th>
-                        <th className="p-4 text-[11px] font-mono uppercase text-black">AT1</th>
+                        <th 
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          onClick={() => requestSort('at1')}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            AT1
+                            {sortConfig?.key === 'at1' ? (
+                              sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
+                            ) : <ArrowUpDown size={10} />}
+                          </div>
+                        </th>
+                        <th 
+                          className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
+                          onClick={() => requestSort('g1')}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            G1
+                            {sortConfig?.key === 'g1' ? (
+                              sortConfig.direction === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
+                            ) : <ArrowUpDown size={10} />}
+                          </div>
+                        </th>
                         <th 
                           className="p-4 text-[11px] font-mono uppercase text-[#EE2E24] cursor-pointer hover:bg-red-50 transition-colors"
                           onClick={() => requestSort('cr_retencao')}
@@ -820,7 +971,8 @@ export default function Dashboard() {
                           <td className="p-4 text-sm font-mono text-black">{(Number(item.med_churn_total) * 100).toFixed(2)}%</td>
                           <td className="p-4 text-sm font-mono text-black">{item.cd_node}</td>
                           <td className="p-4 text-sm font-mono text-black">{item.outage}</td>
-                          <td className="p-4 text-sm font-mono text-black">{item.at1}</td>
+                          <td className="p-4 text-sm font-mono text-black">{(Number(item.at1) * 100).toFixed(2)}%</td>
+                          <td className="p-4 text-sm font-mono text-black">{(Number(item.g1) * 100).toFixed(2)}%</td>
                           <td className="p-4 text-sm font-mono text-black">{item.cr_retencao}</td>
                           <td className="p-4 text-sm font-mono text-black">{item.cr_tecnico}</td>
                           <td className="p-4 text-sm font-mono text-black">{item.cr_financeiro}</td>
@@ -835,6 +987,84 @@ export default function Dashboard() {
                 {filteredData.length > 50 && (
                   <div className="p-4 text-center border-t border-gray-100 bg-gray-50">
                     <p className="text-[10px] font-mono text-gray-400 uppercase">Mostrando primeiros 50 de {filteredData.length} registros</p>
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="map"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="h-[600px] w-full bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden relative z-0"
+              >
+                {filteredData.some(item => 
+                  item.geolat !== undefined && 
+                  item.geolng !== undefined && 
+                  !isNaN(parseFloat(String(item.geolat).replace(',', '.'))) && 
+                  !isNaN(parseFloat(String(item.geolng).replace(',', '.')))
+                ) ? (
+                  <MapContainer 
+                    center={[-15.7801, -47.9292]} 
+                    zoom={4} 
+                    style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={true}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {filteredData.filter(item => 
+                      item.geolat !== undefined && 
+                      item.geolng !== undefined && 
+                      !isNaN(parseFloat(String(item.geolat).replace(',', '.'))) && 
+                      !isNaN(parseFloat(String(item.geolng).replace(',', '.')))
+                    ).map((item, idx) => {
+                      const lat = parseFloat(String(item.geolat).replace(',', '.'));
+                      const lng = parseFloat(String(item.geolng).replace(',', '.'));
+                      const color = getCriticidadeColor(String(item.criticidade));
+                      
+                      return (
+                        <CircleMarker 
+                          key={`${item.cd_node}-${idx}`} 
+                          center={[lat, lng]}
+                          radius={6}
+                          pathOptions={{ 
+                            fillColor: color, 
+                            color: '#FFFFFF', 
+                            weight: 1, 
+                            fillOpacity: 0.8 
+                          }}
+                        >
+                          <Popup>
+                            <div className="p-2 space-y-2 min-w-[150px]">
+                              <div className="border-b border-gray-100 pb-1">
+                                <h4 className="text-xs font-bold text-[#EE2E24] uppercase">{item.nm_cidade}</h4>
+                                <p className="text-[10px] font-mono text-gray-500">NODE: {item.cd_node}</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+                                <span className="text-gray-400">CHURN:</span>
+                                <span className="font-bold">{(Number(item.med_churn_total) * 100).toFixed(2)}%</span>
+                                <span className="text-gray-400">AT1:</span>
+                                <span className="font-bold">{(Number(item.at1) * 100).toFixed(2)}%</span>
+                                <span className="text-gray-400">G1:</span>
+                                <span className="font-bold">{(Number(item.g1) * 100).toFixed(2)}%</span>
+                                <span className="text-gray-400">CRITICIDADE:</span>
+                                <span className="font-bold" style={{ color }}>{item.criticidade}</span>
+                              </div>
+                            </div>
+                          </Popup>
+                        </CircleMarker>
+                      );
+                    })}
+                  </MapContainer>
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                    <AlertCircle className="w-12 h-12 text-gray-200" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Nenhum dado geográfico válido encontrado.</p>
+                      <p className="text-xs">Certifique-se de que as colunas GEOLAT e GEOLNG estão preenchidas corretamente.</p>
+                    </div>
                   </div>
                 )}
               </motion.div>

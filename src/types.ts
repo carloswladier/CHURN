@@ -4,6 +4,7 @@ export interface DashboardData {
   cd_node: string;
   outage: number;
   at1: string;
+  g1: string;
   cr_retencao: number;
   cr_tecnico: number;
   cr_financeiro: number;
@@ -14,6 +15,8 @@ export interface DashboardData {
   criticidade: string;
   desc_vol_mes: string;
   base_mes: string;
+  geolat: number;
+  geolng: number;
   [key: string]: any;
 }
 
